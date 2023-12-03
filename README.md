@@ -1,8 +1,10 @@
-# Reflex
+# reflex
 
-Reflex is a small tool to watch a directory and rerun a command when certain
+This is a small tool to watch a directory and rerun a command when certain
 files change. It's great for automatically running compile/lint/test tasks and
 for reloading your application when the code changes.
+
+**NOTE:** This is a fork of the original project located at https://github.com/cespare/reflex as I needed to make significant changes to it. I'm not the original author of the project, but I'm maintaining it.
 
 ## A simple example
 
