@@ -77,7 +77,7 @@ func walker(watcher *fsnotify.Watcher, reflexes []*Reflex) filepath.WalkFunc {
 func normalize(path string, dir bool) string {
 	path = strings.TrimPrefix(path, "./")
 	if dir && !strings.HasSuffix(path, "/") {
-		path = path + "/"
+		path += "/"
 	}
 	return path
 }

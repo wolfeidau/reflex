@@ -16,7 +16,7 @@ const (
 
 const (
 	colorRed = 31
-	// ANSI colors -- using 32 - 36
+	// ANSI colors -- using 32 - 36.
 	colorStart = 32
 	numColors  = 5
 )
@@ -29,6 +29,7 @@ type OutMsg struct {
 func infoPrintln(id int, args ...interface{}) {
 	stdout <- OutMsg{id, strings.TrimSpace(fmt.Sprintln(args...))}
 }
+
 func infoPrintf(id int, format string, args ...interface{}) {
 	stdout <- OutMsg{id, fmt.Sprintf(format, args...)}
 }

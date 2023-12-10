@@ -57,9 +57,9 @@ func ParseMatchers(regexes, inverseRegexes, globs, inverseGlobs []string) (m Mat
 // matchAll is an all-accepting Matcher.
 type matchAll struct{}
 
-func (matchAll) Match(name string) bool           { return true }
-func (matchAll) ExcludePrefix(prefix string) bool { return false }
-func (matchAll) String() string                   { return "(Implicitly matching all non-excluded files)" }
+func (matchAll) Match(_ string) bool         { return true }
+func (matchAll) ExcludePrefix(_ string) bool { return false }
+func (matchAll) String() string              { return "(Implicitly matching all non-excluded files)" }
 
 type globMatcher struct {
 	glob    string
@@ -74,7 +74,7 @@ func (m *globMatcher) Match(name string) bool {
 	return matches != m.inverse
 }
 
-func (m *globMatcher) ExcludePrefix(prefix string) bool { return false }
+func (m *globMatcher) ExcludePrefix(_ string) bool { return false }
 
 func (m *globMatcher) String() string {
 	s := "Glob"
@@ -118,9 +118,9 @@ func newRegexMatcher(regex *regexp.Regexp, inverse bool) *regexMatcher {
 // the only zero-width lookahead is provided by $, \z, and \b. For instance, the
 // following regular expressions match the "foo", but not "foobar":
 //
-//   foo$
-//   foo\b
-//   (foo$)|(baz$)
+//	foo$
+//	foo\b
+//	(foo$)|(baz$)
 //
 // Thus, to choose whether we can exclude this prefix, m must be an inverse
 // matcher that does not contain the zero-width ops $, \z, and \b.
@@ -191,7 +191,7 @@ func (m multiMatcher) ExcludePrefix(prefix string) bool {
 }
 
 func (m multiMatcher) String() string {
-	var s []string
+	s := make([]string, len(m))
 	for _, matcher := range m {
 		s = append(s, matcher.String())
 	}

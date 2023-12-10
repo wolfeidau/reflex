@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -29,14 +30,14 @@ type Config struct {
 }
 
 func (c *Config) registerFlags(f *flag.FlagSet) {
-	f.VarP(newMultiString(nil, &c.regexes), "regex", "r", `
+	f.VarP(newMultiString(&c.regexes), "regex", "r", `
             A regular expression to match filenames. (May be repeated.)`)
-	f.VarP(newMultiString(nil, &c.inverseRegexes), "inverse-regex", "R", `
+	f.VarP(newMultiString(&c.inverseRegexes), "inverse-regex", "R", `
             A regular expression to exclude matching filenames.
             (May be repeated.)`)
-	f.VarP(newMultiString(nil, &c.globs), "glob", "g", `
+	f.VarP(newMultiString(&c.globs), "glob", "g", `
             A shell glob expression to match filenames. (May be repeated.)`)
-	f.VarP(newMultiString(nil, &c.inverseGlobs), "inverse-glob", "G", `
+	f.VarP(newMultiString(&c.inverseGlobs), "inverse-glob", "G", `
             A shell glob expression to exclude matching filenames.
             (May be repeated.)`)
 	f.StringVar(&c.subSymbol, "substitute", defaultSubSymbol, `
@@ -83,7 +84,7 @@ parseFile:
 		lineNo++
 		// Skip empty lines and comments (lines starting with #).
 		trimmed := strings.TrimSpace(scanner.Text())
-		if len(trimmed) == 0 || strings.HasPrefix(trimmed, "#") {
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
 			continue
 		}
 
@@ -98,7 +99,7 @@ parseFile:
 
 		// Loop while the input line ends with \ or an unfinished quoted string
 		for err != nil {
-			if err == shellquote.UnterminatedEscapeError {
+			if errors.Is(err, shellquote.UnterminatedEscapeError) {
 				// Strip the trailing backslash
 				line = line[:len(line)-1]
 			}
@@ -126,7 +127,7 @@ parseFile:
 		configs = append(configs, c)
 	}
 	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error reading config from %s: %s", name, err)
+		return nil, fmt.Errorf("error reading config from %s: %w", name, err)
 	}
 	return configs, nil
 }
@@ -137,8 +138,7 @@ type multiString struct {
 	set  bool // If false, then vals contains the defaults.
 }
 
-func newMultiString(vals []string, p *[]string) *multiString {
-	*p = vals
+func newMultiString(p *[]string) *multiString {
 	return &multiString{vals: p}
 }
 

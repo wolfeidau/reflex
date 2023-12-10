@@ -78,16 +78,16 @@ func init() {
 }
 
 func anyNonGlobalsRegistered() bool {
-	any := false
+	anything := false
 	walkFn := func(f *flag.Flag) {
 		switch f.Name {
 		case "config", "verbose", "sequential", "decoration":
 		default:
-			any = true
+			anything = true
 		}
 	}
 	globalFlags.Visit(walkFn)
-	return any
+	return anything
 }
 
 func printGlobals() {
@@ -140,7 +140,10 @@ func main() {
 		log.Fatalf("Invalid decoration %s. Choices: none, plain, fancy.", flagDecoration)
 	}
 
-	os.Chdir(flagDirectory)
+	err := os.Chdir(flagDirectory)
+	if err != nil {
+		log.Fatal("Could not change directory:", err)
+	}
 
 	var configs []*Config
 	if flagConf == "" {

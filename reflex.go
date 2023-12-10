@@ -43,7 +43,7 @@ type Reflex struct {
 func NewReflex(c *Config) (*Reflex, error) {
 	matcher, err := ParseMatchers(c.regexes, c.inverseRegexes, c.globs, c.inverseGlobs)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing glob/regex: %s", err)
+		return nil, fmt.Errorf("error parsing glob/regex: %w", err)
 	}
 	if !c.allFiles {
 		matcher = multiMatcher{defaultExcludeMatcher, matcher}
@@ -148,13 +148,12 @@ func (r *Reflex) filterMatching(out chan<- string, in <-chan string) {
 
 // batch receives file notification events and batches them up. It's a bit
 // tricky, but here's what it accomplishes:
-// * When we initially get a message, wait a bit and batch messages before
-//   trying to send anything. This is because the file events come in bursts.
-// * Once it's time to send, don't do it until the out channel is unblocked.
-//   In the meantime, keep batching. When we've sent off all the batched
-//   messages, go back to the beginning.
+//   - When we initially get a message, wait a bit and batch messages before
+//     trying to send anything. This is because the file events come in bursts.
+//   - Once it's time to send, don't do it until the out channel is unblocked.
+//     In the meantime, keep batching. When we've sent off all the batched
+//     messages, go back to the beginning.
 func (r *Reflex) batch(out chan<- string, in <-chan string) {
-
 	const silenceInterval = 300 * time.Millisecond
 
 	for name := range in {
@@ -214,7 +213,10 @@ func (r *Reflex) terminate() {
 	// Write ascii 3 (what you get from ^C) to the controlling pty.
 	// (This won't do anything if the process already died as the write will
 	// simply fail.)
-	r.tty.Write([]byte{3})
+	_, err := r.tty.Write([]byte{3})
+	if err != nil {
+		return
+	}
 
 	timer := time.NewTimer(r.timeout)
 	sig := syscall.SIGINT
@@ -234,7 +236,7 @@ func (r *Reflex) terminate() {
 			// process may have created.
 			if err := syscall.Kill(-1*r.cmd.Process.Pid, sig); err != nil {
 				infoPrintln(r.id, "Error killing:", err)
-				if err.(syscall.Errno) == syscall.ESRCH { // no such process
+				if errors.Is(err, syscall.ESRCH) { // no such process
 					return
 				}
 			}
@@ -245,7 +247,7 @@ func (r *Reflex) terminate() {
 	}
 }
 
-func replaceSubSymbol(command []string, subSymbol string, name string) []string {
+func replaceSubSymbol(command []string, subSymbol, name string) []string {
 	replacer := strings.NewReplacer(subSymbol, name)
 	newCommand := make([]string, len(command))
 	for i, c := range command {
@@ -280,7 +282,7 @@ func (r *Reflex) runCommand(name string, stdout chan<- OutMsg) {
 	go func() {
 		for range chResize {
 			// Intentionally ignore errors in case stdout is not a tty
-			pty.InheritSize(os.Stdout, tty)
+			_ = pty.InheritSize(os.Stdout, tty)
 		}
 	}()
 	chResize <- syscall.SIGWINCH // Initial resize.

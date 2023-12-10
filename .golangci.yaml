@@ -1,0 +1,5 @@
+issues:
+  exclude:
+    - "G204: Subprocess launched with a potential tainted input or cmd arguments"
+    - "Error return value of `pty.InheritSize` is not checked"
+    - "error is not nil (line 55) but it returns nil"
