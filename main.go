@@ -19,14 +19,15 @@ const defaultSubSymbol = "{}"
 var (
 	reflexes []*Reflex
 
-	flagConf       string
-	flagSequential bool
-	flagDecoration string
-	flagDirectory  string
-	decoration     Decoration
-	verbose        bool
-	globalFlags    = flag.NewFlagSet("", flag.ContinueOnError)
-	globalConfig   = &Config{}
+	flagConf          string
+	flagSequential    bool
+	flagDecoration    string
+	flagDirectory     string
+	flagWebsocketBind string
+	decoration        Decoration
+	verbose           bool
+	globalFlags       = flag.NewFlagSet("", flag.ContinueOnError)
+	globalConfig      = &Config{}
 
 	reflexID = 0
 	stdout   = make(chan OutMsg, 1)
@@ -74,6 +75,7 @@ func init() {
             How to decorate command output. Choices: none, plain, fancy.`)
 	globalFlags.StringVarP(&flagDirectory, "directory", "D", ".", `
             Set working directory for commands.`)
+	globalFlags.StringVarP(&flagWebsocketBind, "listener", "L", "localhost:12345", "Bind address for websocket listener.")
 	globalConfig.registerFlags(globalFlags)
 }
 
@@ -193,12 +195,21 @@ func main() {
 	}
 	defer watcher.Close()
 
+	wsout := make(chan string)
+	bc := NewBroadCaster()
+	go bc.StartServer(flagWebsocketBind)
+	go bc.Run()
+	go bc.Broadcast(wsout)
+
 	changes := make(chan string)
 	broadcastChanges := make([]chan string, len(reflexes))
 	done := make(chan error)
 	for i := range reflexes {
 		broadcastChanges[i] = make(chan string)
 	}
+
+	broadcastChanges = append(broadcastChanges, wsout)
+
 	go watch(".", watcher, changes, done, reflexes)
 	go broadcast(broadcastChanges, changes)
 	go printOutput(stdout, os.Stdout)
