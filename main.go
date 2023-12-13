@@ -175,6 +175,10 @@ func main() {
 		if verbose {
 			fmt.Println(reflex)
 		}
+
+		// update the websocket address if it was set on the commandline
+		reflex.websocketAddr = flagWebsocketBind
+
 		reflexes = append(reflexes, reflex)
 	}
 

@@ -14,20 +14,22 @@ import (
 	"time"
 
 	"github.com/creack/pty"
+	"github.com/wolfeidau/reflex/templates"
 )
 
 // A Reflex is a single watch + command to execute.
 type Reflex struct {
-	id           int
-	source       string // Describes what config/line defines this Reflex
-	startService bool
-	backlog      Backlog
-	matcher      Matcher
-	onlyFiles    bool
-	onlyDirs     bool
-	command      []string
-	subSymbol    string
-	done         chan struct{}
+	id            int
+	source        string // Describes what config/line defines this Reflex
+	startService  bool
+	websocketAddr string
+	backlog       Backlog
+	matcher       Matcher
+	onlyFiles     bool
+	onlyDirs      bool
+	command       []string
+	subSymbol     string
+	done          chan struct{}
 
 	mu      *sync.Mutex // protects killed and running
 	killed  bool
@@ -268,6 +270,8 @@ func (r *Reflex) runCommand(name string, stdout chan<- OutMsg) {
 	if flagSequential {
 		seqCommands.Lock()
 	}
+
+	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", templates.ReflexWebsocketAddrEnvKey, r.websocketAddr))
 
 	tty, err := pty.Start(cmd)
 	if err != nil {

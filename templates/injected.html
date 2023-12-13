@@ -18,8 +18,8 @@
 					parent.appendChild(elem);
 				}
 			}
-			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			// var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = 'ws://' + '{{ .WebsocketAddr }}' + '/ws';
 			var socket = new WebSocket(address);
 			socket.onmessage = function (msg) {
                 if (msg.data.split('.').pop() == 'css') refreshCSS();
