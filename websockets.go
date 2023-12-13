@@ -1,7 +1,6 @@
 package main
 
 import (
-	_ "embed"
 	"errors"
 	"io"
 	"log"
@@ -76,8 +75,3 @@ func (bc *BroadCaster) StartServer(listenerAddr string) {
 		log.Fatal("StartServer: " + err.Error())
 	}
 }
-
-// InjectedHTML is the HTML injected into the page containing the live reload script.
-//
-//go:embed templates/injected.html
-var InjectedHTML string
