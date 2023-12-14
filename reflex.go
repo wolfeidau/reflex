@@ -271,7 +271,7 @@ func (r *Reflex) runCommand(name string, stdout chan<- OutMsg) {
 		seqCommands.Lock()
 	}
 
-	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", templates.ReflexWebsocketAddrEnvKey, r.websocketAddr))
+	cmd.Env = append(os.Environ(), fmt.Sprintf("%s=%s", templates.ReflexWebsocketAddrEnvKey, r.websocketAddr))
 
 	tty, err := pty.Start(cmd)
 	if err != nil {
