@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -118,7 +117,7 @@ parseFile:
 		}
 
 		flags := flag.NewFlagSet("", flag.ContinueOnError)
-		flags.SetOutput(ioutil.Discard)
+		flags.SetOutput(io.Discard)
 		c.registerFlags(flags)
 		if err := flags.Parse(parts); err != nil {
 			return nil, fmt.Errorf(errorf, err)

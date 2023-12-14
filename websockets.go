@@ -19,6 +19,7 @@ type BroadCaster struct {
 
 func NewBroadCaster() *BroadCaster {
 	return &BroadCaster{
+		mu:        &sync.Mutex{},
 		broadcast: make(chan string),
 		clients:   make(map[*websocket.Conn]bool),
 	}
